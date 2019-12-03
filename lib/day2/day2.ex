@@ -1,7 +1,46 @@
 defmodule Day2 do
   @input_file "./lib/day2/input"
+  @part2_goal 19_690_720
 
   def part1() do
+    {length, int_code_map} = read_data()
+
+    scan_code(0, set_code_map({1, 2}, int_code_map), length)
+    |> Map.get(0)
+  end
+
+  def part2() do
+    {length, int_code_map} = read_data()
+    {noun, verb} = do_part2(length, int_code_map, %{})
+    100 * noun + verb
+  end
+
+  defp do_part2(length, int_code_map, guessed) do
+    pair = gen_pair(guessed)
+
+    scan_code(0, set_code_map(pair, int_code_map), length)
+    |> Map.get(0)
+    |> case do
+      @part2_goal -> pair
+      _ -> do_part2(length, int_code_map, Map.put(guessed, pair, nil))
+    end
+  end
+
+  defp gen_pair(guessed) do
+    pair = {:rand.uniform(100) - 1, :rand.uniform(100) - 1}
+
+    case guessed do
+      %{^pair => _} -> gen_pair(guessed)
+      _ -> pair
+    end
+  end
+
+  defp set_code_map({v1, v2}, code_map) do
+    Map.put(code_map, 1, v1)
+    |> Map.put(2, v2)
+  end
+
+  defp read_data() do
     {:ok, file} = File.open(@input_file, [:read])
 
     int_code_list =
@@ -10,17 +49,9 @@ defmodule Day2 do
 
     File.close(file)
 
-    {length, int_code_map} =
-      Enum.reduce(int_code_list, {0, %{}}, fn int_code, {index, acc} ->
-        {index + 1, Map.put(acc, index, String.to_integer(int_code))}
-      end)
-
-    int_code_map =
-      Map.put(int_code_map, 1, 12)
-      |> Map.put(2, 2)
-
-    scan_code(0, int_code_map, length)
-    |> Map.get(0)
+    Enum.reduce(int_code_list, {0, %{}}, fn int_code, {index, acc} ->
+      {index + 1, Map.put(acc, index, String.to_integer(int_code))}
+    end)
   end
 
   defp scan_code(index, map, max) when index >= max - 1, do: map
