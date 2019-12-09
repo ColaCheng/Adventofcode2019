@@ -112,6 +112,7 @@ defmodule Day7 do
 
   defp exec_op_code(3, index, map, _) do
     position = Map.get(map, index + 1)
+
     input =
       case Process.get(:inputs) do
         [] ->
